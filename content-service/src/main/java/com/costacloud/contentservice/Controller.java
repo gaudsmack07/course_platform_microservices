@@ -23,7 +23,7 @@ public class Controller {
     @Autowired
     private MinioClient minioClient;
 
-    @GetMapping("/{bucketName}")
+    @GetMapping("/bucket/{bucketName}")
     public boolean bucketNameAvailable(@PathVariable String bucketName) {
         try {
             return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
@@ -32,7 +32,7 @@ public class Controller {
         }
     }
 
-    @GetMapping("/{bucketName}/files")
+    @GetMapping("/bucket/{bucketName}/files")
     public List<String> fileNamesInBucket(@PathVariable String bucketName) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder().bucket(bucketName).build());
@@ -47,7 +47,7 @@ public class Controller {
         return fileNames;
     }
 
-    @PostMapping(path = "/{bucketName}/files/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(path = "bucket/{bucketName}/files", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public void uploadFile(@RequestPart(value="file", required=false) MultipartFile file, @PathVariable String bucketName) throws IOException {
         InputStream inputStream =  new BufferedInputStream(file.getInputStream());
         PutObjectArgs poa = PutObjectArgs.builder()
@@ -62,7 +62,7 @@ public class Controller {
         }
     }
 
-    @GetMapping(path = "/{bucketName}/files/download/{fileName}")
+    @GetMapping(path = "bucket/{bucketName}/files/{fileName}")
     public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String bucketName, @PathVariable String fileName) throws IOException {
         InputStream obj = null;
         try {
@@ -83,7 +83,7 @@ public class Controller {
 
     }
 
-    @GetMapping("/{bucketName}/create")
+    @GetMapping("create")
     public void createBucket(@PathVariable String bucketName) {
         try {
             minioClient.makeBucket(MakeBucketArgs.builder()
@@ -93,4 +93,15 @@ public class Controller {
             throw new RuntimeException(e);
         }
     }
+
+    @DeleteMapping("bucket/{bucketName}/files/{fileName}")
+    public void deleteBucket(@PathVariable String bucketName, @PathVariable String fileName) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     }
