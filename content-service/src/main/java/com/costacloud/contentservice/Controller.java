@@ -6,15 +6,19 @@ import io.minio.messages.Item;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@RequestMapping("/content")
 public class Controller {
     @Autowired
     private MinioClient minioClient;
@@ -78,4 +82,15 @@ public class Controller {
                 .body(resource);
 
     }
-}
+
+    @GetMapping("/{bucketName}/create")
+    public void createBucket(@PathVariable String bucketName) {
+        try {
+            minioClient.makeBucket(MakeBucketArgs.builder()
+                    .bucket(bucketName)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    }

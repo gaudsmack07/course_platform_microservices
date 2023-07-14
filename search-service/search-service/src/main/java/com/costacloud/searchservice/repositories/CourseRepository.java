@@ -9,4 +9,7 @@ public interface CourseRepository extends MongoRepository<Course, String> {
     List<Course> findCourseByTitleContainingIgnoreCase(String tag);
 
     List<Course> findCourseByDescriptionContainingIgnoreCase(String keyword);
+
+    List<Course> findCourseByCreatorId(String id);
+
 }
