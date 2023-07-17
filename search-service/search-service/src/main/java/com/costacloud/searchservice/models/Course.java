@@ -18,4 +18,6 @@ public class Course {
     private String description;
     @DocumentReference
     private Creator creator;
+    private String bucketAllotted;
+
 }

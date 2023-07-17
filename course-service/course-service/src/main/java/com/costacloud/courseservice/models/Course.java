@@ -7,6 +7,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
+import java.util.List;
+
 @Document(collection = "courses")
 @Data
 @AllArgsConstructor
@@ -18,4 +20,10 @@ public class Course {
     private String description;
     @DocumentReference
     private Creator creator;
+    private String bucketAllotted;
+    private List<String> filesList;
+
+    public void addFile(String fileName) {
+        filesList.add(fileName);
+    }
 }

@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -44,6 +45,9 @@ public class CourseController {
         result = result + course.getCreator().getName().replaceAll(regex, "");
         String finalBucketName = result.toLowerCase();
         restTemplate.getForObject("http://CONTENT-SERVICE/content/create/" + finalBucketName, Void.class);
+        course.setBucketAllotted(finalBucketName);
+        //initializing files list
+        course.setFilesList(new ArrayList<>());
 
         return ResponseEntity.ok(courseRepository.save(course));
     }
@@ -51,12 +55,10 @@ public class CourseController {
     @PostMapping(path = "/{courseId}/content", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> addContentToCourse(@RequestPart(value="file", required=false) MultipartFile file, @PathVariable String courseId) throws IOException {
         Course course = courseRepository.findById(courseId).get();
-        String courseName = course.getTitle();
-        String creatorName = creatorRepository.findById(course.getCreator().getId()).get().getName();
-        String regex = "[^a-zA-Z0-9]";
-        String result = courseName.replaceAll(regex, "");
-        result = result + creatorName.replaceAll(regex, "");
-        String bucketName = result.toLowerCase();
+        String bucketName = course.getBucketAllotted();
+
+        course.addFile(file.getOriginalFilename());
+        courseRepository.save(course);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -74,12 +76,7 @@ public class CourseController {
     @GetMapping("/{courseId}/content/{fileName}")
     public ByteArrayResource downloadFile(@PathVariable String courseId, @PathVariable String fileName) {
         Course course = courseRepository.findById(courseId).get();
-        String courseName = course.getTitle();
-        String creatorName = creatorRepository.findById(course.getCreator().getId()).get().getName();
-        String regex = "[^a-zA-Z0-9]";
-        String result = courseName.replaceAll(regex, "");
-        result = result + creatorName.replaceAll(regex, "");
-        String bucketName = result.toLowerCase();
+        String bucketName = course.getBucketAllotted();
 
         return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, ByteArrayResource.class);
     }
@@ -87,12 +84,7 @@ public class CourseController {
     @GetMapping("/{courseId}/content")
     public List<String> getFileList(@PathVariable String courseId) {
         Course course = courseRepository.findById(courseId).get();
-        String courseName = course.getTitle();
-        String creatorName = creatorRepository.findById(course.getCreator().getId()).get().getName();
-        String regex = "[^a-zA-Z0-9]";
-        String result = courseName.replaceAll(regex, "");
-        result = result + creatorName.replaceAll(regex, "");
-        String bucketName = result.toLowerCase();
+        String bucketName = course.getBucketAllotted();
 
         return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", List.class);
     }
