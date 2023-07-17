@@ -24,7 +24,7 @@ public class Controller {
     private MinioClient minioClient;
 
     @GetMapping("/bucket/{bucketName}")
-    public boolean bucketNameAvailable(@PathVariable String bucketName) {
+    public boolean bucketExists(@PathVariable String bucketName) {
         try {
             return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
         } catch (Exception e) {

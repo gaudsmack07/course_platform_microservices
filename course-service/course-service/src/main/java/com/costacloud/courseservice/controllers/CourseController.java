@@ -4,7 +4,9 @@ import com.costacloud.courseservice.models.Course;
 import com.costacloud.courseservice.models.Creator;
 import com.costacloud.courseservice.repositories.CourseRepository;
 import com.costacloud.courseservice.repositories.CreatorRepository;
+import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -13,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/course")
@@ -66,7 +69,32 @@ public class CourseController {
         // Send the multipart file to the target URL
         ResponseEntity<String> responseEntity = restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
         return ResponseEntity.ok(responseEntity.getBody());
+    }
 
+    @GetMapping("/{courseId}/content/{fileName}")
+    public ByteArrayResource downloadFile(@PathVariable String courseId, @PathVariable String fileName) {
+        Course course = courseRepository.findById(courseId).get();
+        String courseName = course.getTitle();
+        String creatorName = creatorRepository.findById(course.getCreator().getId()).get().getName();
+        String regex = "[^a-zA-Z0-9]";
+        String result = courseName.replaceAll(regex, "");
+        result = result + creatorName.replaceAll(regex, "");
+        String bucketName = result.toLowerCase();
+
+        return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, ByteArrayResource.class);
+    }
+
+    @GetMapping("/{courseId}/content")
+    public List<String> getFileList(@PathVariable String courseId) {
+        Course course = courseRepository.findById(courseId).get();
+        String courseName = course.getTitle();
+        String creatorName = creatorRepository.findById(course.getCreator().getId()).get().getName();
+        String regex = "[^a-zA-Z0-9]";
+        String result = courseName.replaceAll(regex, "");
+        result = result + creatorName.replaceAll(regex, "");
+        String bucketName = result.toLowerCase();
+
+        return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", List.class);
     }
 
 }
