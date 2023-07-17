@@ -1,4 +1,4 @@
-package com.costacloud.courseservice.models;
+package com.costacloud.userservice.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

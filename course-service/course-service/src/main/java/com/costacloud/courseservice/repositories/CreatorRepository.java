@@ -1,6 +1,6 @@
 package com.costacloud.courseservice.repositories;
 
-import com.costacloud.searchservice.models.Creator;
+import com.costacloud.courseservice.models.Creator;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/course")
+@RequestMapping("/search")
 public class CourseController {
 
     @Autowired
@@ -29,8 +29,8 @@ public class CourseController {
         return courseRepository.findCourseByDescriptionContainingIgnoreCase(keyword);
     }
 
-    @GetMapping("/creator/{creatorName}")
-    public List<Course> getCoursesByCreator(@PathVariable String creatorName) {
+    @GetMapping("/creator/name/{creatorName}")
+    public List<Course> getCoursesByCreatorName(@PathVariable String creatorName) {
         List<Creator> creatorsContainingName = creatorRepository.findCreatorByNameContainingIgnoreCase(creatorName);
         List<Course> result = new ArrayList<>();
         for(Creator creator : creatorsContainingName) {
@@ -38,6 +38,12 @@ public class CourseController {
         }
         return result;
     }
+
+    @GetMapping("/creator/id/{creatorId}")
+    public List<Course> getCoursesByCreatorId(@PathVariable String creatorId) {
+        return courseRepository.findCourseByCreatorId(creatorId);
+    }
+
 
 //    @PostMapping(path = "/temp", consumes = {"application/json"})
 //    public void something(@RequestBody Course course) {

@@ -83,8 +83,9 @@ public class Controller {
 
     }
 
-    @GetMapping("create")
+    @GetMapping("create/{bucketName}")
     public void createBucket(@PathVariable String bucketName) {
+        System.out.println("method called...");
         try {
             minioClient.makeBucket(MakeBucketArgs.builder()
                     .bucket(bucketName)
