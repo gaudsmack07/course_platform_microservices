@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 public class CourseServiceApplication {
 
 	@Bean
+	@LoadBalanced
 	public RestTemplate createRestTemplate() {
 		return new RestTemplate();
 	}

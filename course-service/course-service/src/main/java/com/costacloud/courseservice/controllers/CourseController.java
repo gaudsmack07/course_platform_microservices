@@ -40,7 +40,7 @@ public class CourseController {
         String result = course.getTitle().replaceAll(regex, "");
         result = result + course.getCreator().getName().replaceAll(regex, "");
         String finalBucketName = result.toLowerCase();
-        restTemplate.getForObject("http://localhost:8082/content/create/" + finalBucketName, Void.class);
+        restTemplate.getForObject("http://CONTENT-SERVICE/content/create/" + finalBucketName, Void.class);
 
         return ResponseEntity.ok(courseRepository.save(course));
     }
