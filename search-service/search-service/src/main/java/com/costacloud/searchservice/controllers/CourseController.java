@@ -44,10 +44,4 @@ public class CourseController {
         return courseRepository.findCourseByCreatorId(creatorId);
     }
 
-
-//    @PostMapping(path = "/temp", consumes = {"application/json"})
-//    public void something(@RequestBody Course course) {
-//        creatorRepository.save(course.getCreator());
-//        courseRepository.save(course);
-//    }
 }

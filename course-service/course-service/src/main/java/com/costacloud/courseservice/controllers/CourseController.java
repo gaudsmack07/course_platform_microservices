@@ -4,7 +4,6 @@ import com.costacloud.courseservice.models.Course;
 import com.costacloud.courseservice.models.Creator;
 import com.costacloud.courseservice.repositories.CourseRepository;
 import com.costacloud.courseservice.repositories.CreatorRepository;
-import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -57,7 +56,9 @@ public class CourseController {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
-        course.addFile(file.getOriginalFilename());
+        if (!course.getFilesList().contains(file.getOriginalFilename())){
+            course.addFile(file.getOriginalFilename());
+        }
         courseRepository.save(course);
 
         HttpHeaders headers = new HttpHeaders();
@@ -87,6 +88,11 @@ public class CourseController {
         String bucketName = course.getBucketAllotted();
 
         return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", List.class);
+    }
+
+    @DeleteMapping("/{courseId}")
+    public void deleteCourse(@PathVariable String courseId) {
+
     }
 
 }
