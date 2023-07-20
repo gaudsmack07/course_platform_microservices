@@ -1,0 +1,43 @@
+#spring:
+#  security:
+#    oauth2:
+#      client:
+#        provider:
+#          my-keycloak-provider:
+#            issuer-uri: http://localhost:8181/realms/course-platform
+#          registration:
+#            keycloak-spring-gateway-client:
+#              provider: my-keycloak-provider
+#              client-id: gateway-client
+#              client-secret: 'tAtyxk9I3Qun4EgfVCrF82DcrMHyJ9jW'
+#              authorization-grant-type: authorization_code
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: http://localhost:8181/realms/course-platform/protocol/openid-connect/certs
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: gateway-client
+            client-secret: tAtyxk9I3Qun4EgfVCrF82DcrMHyJ9jW
+            authorization-grant-type: authorization_code
+            redirect-uri: ${keycloak-client.server-url}/login/oauth2/code/keycloak
+            scope: openid
+        provider:
+          keycloak:
+            authorization-uri: ${keycloak-client.server-url}/realms/${keycloak-client.realm}/protocol/openid-connect/auth
+            token-uri: ${keycloak-client.server-url}/realms/${keycloak-client.realm}/protocol/openid-connect/token
+            user-info-uri: ${keycloak-client.server-url}/realms/${keycloak-client.realm}/protocol/openid-connect/userinfo
+            jwk-set-uri: ${keycloak-client.server-url}/realms/${keycloak-client.realm}/protocol/openid-connect/certs
+            user-name-attribute: name
+            user-info-authentication-method: header
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${keycloak-client.server-url}/realms/${keycloak-client.realm}/protocol/openid-connect/certs
+keycloak-client:
+  server-url: http://localhost:8181
+  realm: course-platform
