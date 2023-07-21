@@ -1,6 +1,8 @@
 package com.costacloud.userservice.controller;
 
+import com.costacloud.userservice.models.Course;
 import com.costacloud.userservice.models.User;
+import com.costacloud.userservice.respository.CourseRepository;
 import com.costacloud.userservice.respository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,9 +16,11 @@ import java.util.ArrayList;
 public class UserController {
     @Autowired
     private UserRepository userRepository;
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(String userId) {
-        return ResponseEntity.ok(userRepository.findById(userId));
+    @Autowired
+    private CourseRepository courseRepository;
+    @GetMapping("/{userName}")
+    public ResponseEntity<?> getUser(@PathVariable String userName) {
+        return ResponseEntity.ok(userRepository.findById(userName));
     }
     @PostMapping
     public ResponseEntity<?> addUser(@RequestBody User user) {
@@ -26,5 +30,25 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already taken");
         }
         return ResponseEntity.ok(userRepository.save(user));
+    }
+    @PutMapping("/{userName}/add")
+    public ResponseEntity<?> enrolCourse(@RequestBody Course course, @PathVariable String userName) {
+        User user = userRepository.findById(userName).get();
+        var courseOptional = courseRepository.findById(course.getId());
+        if (courseOptional.isPresent()) {
+            user.addCourse(courseOptional.get());
+            userRepository.save(user);
+        } else {
+            throw new RuntimeException("No such course");
+        }
+        return ResponseEntity.ok("Course added to user");
+    }
+
+    @PutMapping("/{userName}/delete")
+    public ResponseEntity<?> removeCourse(@RequestBody Course course, @PathVariable String userName) {
+        User user = userRepository.findById(userName).get();
+        user.removeCourse(course.getId());
+        userRepository.save(user);
+        return ResponseEntity.ok("Course withdrawn from");
     }
 }

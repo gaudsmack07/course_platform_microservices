@@ -15,9 +15,20 @@ import java.util.List;
 @Document(collection = "users")
 public class User {
     @Id
-    private String id;
-    private String name;
     private String username;
+    private String name;
     @DocumentReference
     private List<Course> enrolledCourses;
+
+    public void addCourse(Course course) {
+        enrolledCourses.add(course);
+    }
+
+    public void removeCourse(String courseId) {
+        for (int i = 0; i < enrolledCourses.size(); i++) {
+            if (enrolledCourses.get(i).getId().equals(courseId)) {
+                enrolledCourses.remove(i);
+            }
+        }
+    }
 }
