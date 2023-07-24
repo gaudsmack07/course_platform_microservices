@@ -31,10 +31,10 @@ public class UserController {
         }
         return ResponseEntity.ok(userRepository.save(user));
     }
-    @PutMapping("/{userName}/add")
-    public ResponseEntity<?> enrolCourse(@RequestBody Course course, @PathVariable String userName) {
+    @PutMapping("/{userName}/add/{courseId}")
+    public ResponseEntity<?> enrolCourse(@PathVariable String courseId, @PathVariable String userName) {
         User user = userRepository.findById(userName).get();
-        var courseOptional = courseRepository.findById(course.getId());
+        var courseOptional = courseRepository.findById(courseId);
         if (courseOptional.isPresent()) {
             user.addCourse(courseOptional.get());
             userRepository.save(user);
@@ -44,10 +44,10 @@ public class UserController {
         return ResponseEntity.ok("Course added to user");
     }
 
-    @PutMapping("/{userName}/delete")
-    public ResponseEntity<?> removeCourse(@RequestBody Course course, @PathVariable String userName) {
+    @PutMapping("/{userName}/delete/{courseId}")
+    public ResponseEntity<?> removeCourse(@PathVariable String courseId, @PathVariable String userName) {
         User user = userRepository.findById(userName).get();
-        user.removeCourse(course.getId());
+        user.removeCourse(courseId);
         userRepository.save(user);
         return ResponseEntity.ok("Course withdrawn from");
     }
