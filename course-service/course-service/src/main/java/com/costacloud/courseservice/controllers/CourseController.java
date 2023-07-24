@@ -4,6 +4,7 @@ import com.costacloud.courseservice.models.Course;
 import com.costacloud.courseservice.models.Creator;
 import com.costacloud.courseservice.repositories.CourseRepository;
 import com.costacloud.courseservice.repositories.CreatorRepository;
+import org.apache.http.client.methods.HttpHead;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -28,11 +29,11 @@ public class CourseController {
     private RestTemplate restTemplate;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCourse(@RequestBody String id) {
+    public ResponseEntity<?> getCourse(@PathVariable String id) {
         return ResponseEntity.ok(courseRepository.findById(id));
     }
-    @PostMapping("")
-    public ResponseEntity<?> addCourse(@RequestBody Course course) {
+    @PostMapping
+    public ResponseEntity<?> addCourse(@RequestBody Course course, @RequestHeader("Authorization") String token) {
         //add creator to db if not already there
         String creatorId = course.getCreator().getId();
         if (creatorRepository.findById(creatorId).isEmpty()) {
@@ -45,7 +46,12 @@ public class CourseController {
         String result = course.getTitle().replaceAll(regex, "");
         result = result + course.getCreator().getName().replaceAll(regex, "");
         String finalBucketName = result.toLowerCase();
-        restTemplate.getForObject("http://CONTENT-SERVICE/content/create/" + finalBucketName, Void.class);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange("http://CONTENT-SERVICE/content/create/" + finalBucketName, HttpMethod.GET, entity, Void.class);
         course.setBucketAllotted(finalBucketName);
         //initializing files list
         course.setFilesList(new ArrayList<>());
@@ -54,7 +60,7 @@ public class CourseController {
     }
 
     @PostMapping(path = "/{courseId}/content", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> addContentToCourse(@RequestPart(value="file", required=false) MultipartFile file, @PathVariable String courseId) throws IOException {
+    public ResponseEntity<String> addContentToCourse(@RequestPart(value="file", required=false) MultipartFile file, @PathVariable String courseId, @RequestHeader("Authorization") String token) throws IOException {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
@@ -65,6 +71,7 @@ public class CourseController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("Authorization", token);
 
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(file.getBytes(), headers);
 
@@ -77,19 +84,27 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/content/{fileName}")
-    public ByteArrayResource downloadFile(@PathVariable String courseId, @PathVariable String fileName) {
+    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String courseId, @PathVariable String fileName, @RequestHeader("Authorization") String token) {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
-        return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, ByteArrayResource.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, HttpMethod.GET,entity, ByteArrayResource.class);
     }
 
     @GetMapping("/{courseId}/content")
-    public List<String> getFileList(@PathVariable String courseId) {
+    public ResponseEntity<?> getFileList(@PathVariable String courseId, @RequestHeader("Authorization") String token) {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
-        return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", List.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", HttpMethod.GET, entity, List.class);
     }
 
     @PutMapping("/{courseId}")
@@ -102,22 +117,32 @@ public class CourseController {
     }
 
     @DeleteMapping("/{courseId}")
-    public void deleteCourse(@PathVariable String courseId) {
+    public void deleteCourse(@PathVariable String courseId,@RequestHeader("Authorization") String token) {
         if (courseRepository.findById(courseId).isEmpty()) {
             return;
         }
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
-        restTemplate.delete("http://CONTENT-SERVICE/content/bucket/" + bucketName);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName, HttpMethod.DELETE, entity, Void.class);
         courseRepository.deleteById(courseId);
     }
 
     @DeleteMapping("/{courseId}/{fileName}")
-    public void deleteContent(@PathVariable String courseId, @PathVariable String fileName) {
+    public void deleteContent(@PathVariable String courseId, @PathVariable String fileName,@RequestHeader("Authorization") String token) {
         Course course = courseRepository.findById(courseId).get();
         course.getFilesList().remove(fileName);
         String bucketName = course.getBucketAllotted();
-        restTemplate.delete("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, HttpMethod.DELETE, entity, Void.class);
         courseRepository.save(course);
     }
 
