@@ -23,14 +23,14 @@ public class Controller {
     @Autowired
     private MinioClient minioClient;
 
-    @GetMapping("/bucket/{bucketName}")
-    public boolean bucketExists(@PathVariable String bucketName) {
-        try {
-            return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    @GetMapping("/bucket/{bucketName}")
+//    public boolean bucketExists(@PathVariable String bucketName) {
+//        try {
+//            return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     @GetMapping("/bucket/{bucketName}/files")
     public List<String> fileNamesInBucket(@PathVariable String bucketName) {
@@ -100,6 +100,15 @@ public class Controller {
         try {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @DeleteMapping("bucket/{bucketName}")
+    public void deleteBucket(@PathVariable String bucketName) {
+        try {
+            minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

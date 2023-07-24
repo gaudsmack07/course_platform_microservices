@@ -34,9 +34,11 @@ public class CourseController {
     @PostMapping("")
     public ResponseEntity<?> addCourse(@RequestBody Course course) {
         //add creator to db if not already there
-        String creatorName = course.getCreator().getName();
-        if (creatorRepository.findCreatorByNameContainingIgnoreCase(creatorName).isEmpty()) {
+        String creatorId = course.getCreator().getId();
+        if (creatorRepository.findById(creatorId).isEmpty()) {
             creatorRepository.save(course.getCreator());
+        } else {
+            course.setCreator(creatorRepository.findById(creatorId).get());
         }
         //create bucket in minio - bucket naming convention - course name + creator last name
         String regex = "[^a-zA-Z0-9]";
@@ -90,9 +92,33 @@ public class CourseController {
         return restTemplate.getForObject("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", List.class);
     }
 
+    @PutMapping("/{courseId}")
+    public void modifyCourseDesc(@RequestBody Course course, @PathVariable String courseId) {
+        Course savedCourse = courseRepository.findById(courseId).get();
+        if (course.getDescription() != null) {
+            savedCourse.setDescription(course.getDescription());
+        }
+        courseRepository.save(savedCourse);
+    }
+
     @DeleteMapping("/{courseId}")
     public void deleteCourse(@PathVariable String courseId) {
+        if (courseRepository.findById(courseId).isEmpty()) {
+            return;
+        }
+        Course course = courseRepository.findById(courseId).get();
+        String bucketName = course.getBucketAllotted();
+        restTemplate.delete("http://CONTENT-SERVICE/content/bucket/" + bucketName);
+        courseRepository.deleteById(courseId);
+    }
 
+    @DeleteMapping("/{courseId}/{fileName}")
+    public void deleteContent(@PathVariable String courseId, @PathVariable String fileName) {
+        Course course = courseRepository.findById(courseId).get();
+        course.getFilesList().remove(fileName);
+        String bucketName = course.getBucketAllotted();
+        restTemplate.delete("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName);
+        courseRepository.save(course);
     }
 
 }
