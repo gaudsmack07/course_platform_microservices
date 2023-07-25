@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class Activity {
 
     private String courseId;
+    private String entityDesc;
     private Action action;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime createdAt;

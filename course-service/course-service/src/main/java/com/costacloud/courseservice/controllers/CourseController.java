@@ -42,6 +42,7 @@ public class CourseController {
         activity.setCourseId(id);
         activity.setAction(Action.VIEWED);
         activity.setCreatedAt(LocalDateTime.now());
+        activity.setEntityDesc(courseRepository.findById(id).get().getTitle());
         userActivity.setUsername(username);
         userActivity.setActivity(activity);
         kafkaTemplate.send("userActivity", userActivity);
@@ -104,10 +105,20 @@ public class CourseController {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
+        String username = courseService.getUsernameFromToken(token);
+        UserActivity userActivity = new UserActivity();
+        Activity activity = new Activity();
+        activity.setCourseId(courseId);
+        activity.setAction(Action.DOWNLOADED);
+        activity.setCreatedAt(LocalDateTime.now());
+        activity.setEntityDesc(fileName);
+        userActivity.setUsername(username);
+        userActivity.setActivity(activity);
+        kafkaTemplate.send("userActivity", userActivity);
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-
         return restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files/" + fileName, HttpMethod.GET,entity, ByteArrayResource.class);
     }
 
@@ -116,10 +127,20 @@ public class CourseController {
         Course course = courseRepository.findById(courseId).get();
         String bucketName = course.getBucketAllotted();
 
+        String username = courseService.getUsernameFromToken(token);
+        UserActivity userActivity = new UserActivity();
+        Activity activity = new Activity();
+        activity.setCourseId(courseId);
+        activity.setAction(Action.VIEWED);
+        activity.setCreatedAt(LocalDateTime.now());
+        activity.setEntityDesc("List of all contents");
+        userActivity.setUsername(username);
+        userActivity.setActivity(activity);
+        kafkaTemplate.send("userActivity", userActivity);
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-
         return restTemplate.exchange("http://CONTENT-SERVICE/content/bucket/" + bucketName + "/files", HttpMethod.GET, entity, List.class);
     }
 
