@@ -5,6 +5,7 @@ import com.costacloud.searchservice.models.Creator;
 import com.costacloud.searchservice.repositories.CourseRepository;
 import com.costacloud.searchservice.repositories.CreatorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.List;
 @RequestMapping("/search")
 public class CourseController {
 
+    private KafkaTemplate kafkaTemplate;
+
     @Autowired
     private CourseRepository courseRepository;
 
@@ -22,10 +25,14 @@ public class CourseController {
 
     @GetMapping("/title/{title}")
     public List<Course> getCoursesByTitle(@PathVariable String title) {
+        kafkaTemplate.send("searched", title);
+
         return courseRepository.findCourseByTitleContainingIgnoreCase(title);
     }
     @GetMapping("/keyword/{keyword}")
     public List<Course> getCoursesByKeyword(@PathVariable String keyword) {
+        kafkaTemplate.send("searched", keyword);
+
         return courseRepository.findCourseByDescriptionContainingIgnoreCase(keyword);
     }
 

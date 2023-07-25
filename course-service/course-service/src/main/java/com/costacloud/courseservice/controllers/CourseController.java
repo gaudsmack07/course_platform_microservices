@@ -1,13 +1,14 @@
 package com.costacloud.courseservice.controllers;
 
-import com.costacloud.courseservice.models.Course;
-import com.costacloud.courseservice.models.Creator;
+import com.costacloud.courseservice.models.*;
 import com.costacloud.courseservice.repositories.CourseRepository;
 import com.costacloud.courseservice.repositories.CreatorRepository;
+import com.costacloud.courseservice.services.CourseService;
 import org.apache.http.client.methods.HttpHead;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +16,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/course")
 public class CourseController {
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
+    @Autowired
+    private CourseService courseService;
     @Autowired
     private CourseRepository courseRepository;
     @Autowired
@@ -29,7 +35,17 @@ public class CourseController {
     private RestTemplate restTemplate;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCourse(@PathVariable String id) {
+    public ResponseEntity<?> getCourse(@PathVariable String id, @RequestHeader("Authorization") String token) {
+        String username = courseService.getUsernameFromToken(token);
+        UserActivity userActivity = new UserActivity();
+        Activity activity = new Activity();
+        activity.setCourseId(id);
+        activity.setAction(Action.VIEWED);
+        activity.setCreatedAt(LocalDateTime.now());
+        userActivity.setUsername(username);
+        userActivity.setActivity(activity);
+        kafkaTemplate.send("userActivity", userActivity);
+
         return ResponseEntity.ok(courseRepository.findById(id));
     }
     @PostMapping
