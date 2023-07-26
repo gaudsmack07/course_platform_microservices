@@ -1,5 +1,7 @@
 package com.costacloud.contentservice;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
