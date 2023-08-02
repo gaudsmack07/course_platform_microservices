@@ -7,6 +7,7 @@
         <!-- Check tag and label fluentd info: https://docs.fluentd.org/configuration/config-file-->
 <!--        <tag>service.helloworld.access</tag>-->
 <!--        <label>fluent_log</label>-->
+        <tag>search.service</tag>
         <remoteHost>localhost</remoteHost>
         <port>24224</port>
         <layout class="ch.qos.logback.classic.PatternLayout">
